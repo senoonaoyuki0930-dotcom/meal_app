@@ -113,7 +113,6 @@ if st.session_state.draft is not None:
 
 
 ...
-
 with colB:
     if st.button("登録（Sheetsへ保存）", type="primary"):
         try:
@@ -134,12 +133,9 @@ with colB:
             st.session_state.draft = None
             st.rerun()
 
-        
+        except Exception as e:
+            st.error(f"保存に失敗しました: {type(e).__name__}: {e}")
+            st.code(traceback.format_exc())
+            st.stop()
 
-...
-
-except Exception as e:
-    st.error(f"保存に失敗しました: {type(e).__name__}: {e}")
-    st.code(traceback.format_exc())
-    st.stop()
 
