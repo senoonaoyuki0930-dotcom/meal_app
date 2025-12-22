@@ -9,10 +9,9 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive",
 ]
 
-import json
-import streamlit as st
-import gspread
 from google.oauth2.service_account import Credentials
+import gspread
+import streamlit as st
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -21,12 +20,8 @@ SCOPES = [
 
 @st.cache_resource
 def get_worksheet():
-    info = json.loads(st.secrets["SERVICE_ACCOUNT_JSON"])
-
-    creds = Credentials.from_service_account_info(
-        info,
-        scopes=SCOPES
-    )
+    info = dict(st.secrets["gcp_service_account"])
+    creds = Credentials.from_service_account_info(info, scopes=SCOPES)
     gc = gspread.authorize(creds)
 
     sh = gc.open_by_key(st.secrets["SPREADSHEET_ID"])
