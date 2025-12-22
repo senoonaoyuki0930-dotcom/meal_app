@@ -9,24 +9,30 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive",
 ]
 
+import json
+import streamlit as st
+import gspread
+from google.oauth2.service_account import Credentials
+
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
+]
+
 @st.cache_resource
 def get_worksheet():
-    # ===== Cloud: st.secrets に service_account を入れる =====
-    if "gcp_service_account" in st.secrets:
-        info = dict(st.secrets["gcp_service_account"])
-        creds = Credentials.from_service_account_info(info, scopes=SCOPES)
-    else:
-        # ===== Local: service_account.json を使う（任意）=====
-        creds = Credentials.from_service_account_file("service_account.json", scopes=SCOPES)
+    info = json.loads(st.secrets["SERVICE_ACCOUNT_JSON"])
 
+    creds = Credentials.from_service_account_info(
+        info,
+        scopes=SCOPES
+    )
     gc = gspread.authorize(creds)
 
-    SPREADSHEET_ID = st.secrets.get("SPREADSHEET_ID", "あなたのスプレッドシートID")
-    WORKSHEET_NAME = st.secrets.get("WORKSHEET_NAME", "meal_log")
-
-    sh = gc.open_by_key(SPREADSHEET_ID)
-    ws = sh.worksheet(WORKSHEET_NAME) if WORKSHEET_NAME else sh.sheet1
+    sh = gc.open_by_key(st.secrets["SPREADSHEET_ID"])
+    ws = sh.worksheet(st.secrets["WORKSHEET_NAME"])
     return ws
+
 
 def calc_kcal(p: float, f: float, c: float) -> float:
     return p * 4 + c * 4 + f * 9
