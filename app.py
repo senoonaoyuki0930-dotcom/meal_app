@@ -109,27 +109,30 @@ if st.session_state.draft is not None:
             st.session_state.draft = None
             st.rerun()
 
-    with colB:
-        if st.button("登録（Sheetsへ保存）", type="primary"):
-            try:
-                ws = get_worksheet()
+   import traceback
 
-                # ✅ Sheetsに入る順番：timestamp → food_name → protein → fat → carbs → calories → note → source
-                row = [
-                    datetime.now().isoformat(),  # timestamp
-                    food_name2,                  # ★追加：food_name
-                    float(p2),                   # protein_g
-                    float(f2),                   # fat_g
-                    float(c2),                   # carbs_g
-                    float(kcal2),                # calories
-                    note2,                       # note
-                    d.get("source", "manual"),   # source
-                ]
-                ws.append_row(row)
-                st.success("✅ 登録しました！")
+...
 
-                st.session_state.draft = None
-                st.rerun()
+with colB:
+    if st.button("登録（Sheetsへ保存）", type="primary"):
+        try:
+            ws = get_worksheet()
 
-            except Exception as e:
-                st.error(f"保存に失敗しました: {e}")
+            row = [
+                datetime.now().isoformat(),
+                float(p2),
+                float(f2),
+                float(c2),
+                float(kcal2),
+                note2,
+                d.get("source", "manual"),
+            ]
+
+            ws.append_row(row, value_input_option="USER_ENTERED")
+            st.success("登録できました！")
+            st.session_state.draft = None
+            st.rerun()
+
+        except Exception as e:
+            st.error(f"保存に失敗しました: {type(e).__name__}: {e}")
+            st.code(traceback.format_exc())
