@@ -2,6 +2,7 @@ import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
+import traceback
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -109,7 +110,7 @@ if st.session_state.draft is not None:
             st.session_state.draft = None
             st.rerun()
 
-   import traceback
+
 
 ...
 
