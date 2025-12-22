@@ -1,8 +1,10 @@
 import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
-from datetime import datetime
+from datetime import datetime,timezone, timedelta
 import traceback
+
+JST = timezone(timedelta(hours=9))
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -53,7 +55,7 @@ if mode.startswith("手入力"):
 
     if st.button("次へ（確認）", type="primary"):
         st.session_state.draft = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(JST).isoformat(),
             "food_name": food_name,
             "protein_g": float(p),
             "fat_g": float(f),
@@ -76,7 +78,6 @@ if st.session_state.draft is not None:
 
     d = st.session_state.draft
 
-    # 食べ物名（確認）
     food_name2 = st.text_input("食べ物名 [確認]", value=d.get("food_name", ""))
 
     col1, col2, col3 = st.columns(3)
@@ -105,14 +106,14 @@ if st.session_state.draft is not None:
                 ws = get_worksheet()
 
                 row = [
-                    d.get("timestamp", datetime.now().isoformat()),  # 日時
-                    food_name2,                                     # 食べ物名
-                    float(p2),                                      # P
-                    float(f2),                                      # F
-                    float(c2),                                      # C
-                    float(kcal2),                                   # kcal
-                    note2,                                          # memo
-                    d.get("source", "manual"),                      # source
+                    datetime.now().isoformat(),
+                    food_name2,               # ←ここに食べ物名を入れる（指定の順）
+                    float(p2),
+                    float(f2),
+                    float(c2),
+                    float(kcal2),
+                    note2,
+                    d.get("source", "manual"),
                 ]
 
                 ws.append_row(row, value_input_option="USER_ENTERED")
@@ -121,7 +122,6 @@ if st.session_state.draft is not None:
                 st.rerun()
 
             except Exception as e:
-                st.error("保存に失敗しました（詳細は下）")
-                st.exception(e)
+                st.error(f"保存に失敗しました: {type(e).__name__}: {e}")
                 st.code(traceback.format_exc())
                 st.stop()
