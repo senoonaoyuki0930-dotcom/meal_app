@@ -134,6 +134,12 @@ with colB:
             st.session_state.draft = None
             st.rerun()
 
-        except Exception as e:
-            st.error(f"保存に失敗しました: {type(e).__name__}: {e}")
-            st.code(traceback.format_exc())
+        import traceback
+
+...
+
+except Exception as e:
+    st.error(f"保存に失敗しました: {type(e).__name__}: {e}")
+    st.code(traceback.format_exc())
+    st.stop()
+
