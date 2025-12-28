@@ -116,7 +116,7 @@ if st.session_state.draft is not None:
                     d.get("source", "manual"),
                 ]
 
-                ws.append_row(row, value_input_option="USER_ENTERED")
+                ws.append_row(row, value_input_option="RAW")
                 st.success("登録できました！")
                 st.session_state.draft = None
                 st.rerun()
