@@ -115,15 +115,13 @@ if mode.startswith("手入力"):
 
 else:
     st.subheader("写真→OCR（β）")
-    up = st.file_uploader("栄養成分表の写真", type=["png", "jpg", "jpeg"])
+    up = st.file_uploader("栄養成分表の写真", type=["png", "jpg", "jpeg"], key="ocr_upload")
 
     if up is None:
         st.info("画像をアップロードしてください。")
     else:
         img_bytes = up.getvalue()
         st.image(img_bytes, caption="アップロード画像", use_container_width=True)
-
-        # ここで「アップロードできた感」を出す
         st.success("画像を受け取りました。OCRボタンを押してください。")
 
         if st.button("OCRして確認へ", type="primary", key="run_ocr"):
@@ -138,7 +136,7 @@ else:
                     kcal = float(parsed.get("kcal") or calc_kcal(p, f, c))
 
                     st.session_state.draft = {
-                        "timestamp": datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S"),
+                        "timestamp": datetime.now(JST).strftime("%Y/%m/%d %H:%M:%S"),
                         "food_name": "",
                         "protein_g": p,
                         "fat_g": f,
@@ -146,7 +144,7 @@ else:
                         "calories": kcal,
                         "note": "OCR",
                         "source": "ocr",
-                        "ocr_text": text,  # デバッグ用に保持
+                        "ocr_text": text,
                     }
                     st.rerun()
 
@@ -155,8 +153,9 @@ else:
                     st.exception(e)
 
         if st.session_state.draft and st.session_state.draft.get("ocr_text"):
-    with st.expander("OCR全文（デバッグ）"):
-        st.text(st.session_state.draft["ocr_text"])
+            with st.expander("OCR全文（デバッグ）"):
+                st.text(st.session_state.draft["ocr_text"])
+
        
 
 
