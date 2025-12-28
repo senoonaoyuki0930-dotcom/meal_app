@@ -122,28 +122,31 @@ else:
         st.image(img_bytes, caption="アップロード画像", use_container_width=True)
 
         if st.button("OCRして確認へ", type="primary"):
-            text = ocr_with_vision(img_bytes)
-            parsed = parse_nutrition(text)
+            with st.spinner("OCR解析中です…"):
+                text = ocr_with_vision(img_bytes)
+                parsed = parse_nutrition(text)
 
-            p = float(parsed["protein_g"] or 0)
-            f = float(parsed["fat_g"] or 0)
-            c = float(parsed["carbs_g"] or 0)
-            kcal = float(parsed["kcal"] or calc_kcal(p, f, c))
+                p = float(parsed["protein_g"] or 0)
+                f = float(parsed["fat_g"] or 0)
+                c = float(parsed["carbs_g"] or 0)
+                kcal = float(parsed["kcal"] or calc_kcal(p, f, c))
 
-            st.session_state.draft = {
-                "timestamp": datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S"),
-                "food_name": "",
-                "protein_g": p,
-                "fat_g": f,
-                "carbs_g": c,
-                "calories": kcal,
-                "note": "OCR",
-                "source": "ocr",
-            }
+                st.session_state.draft = {
+                    "timestamp": datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S"),
+                    "food_name": "",
+                    "protein_g": p,
+                    "fat_g": f,
+                    "carbs_g": c,
+                    "calories": kcal,
+                    "note": "OCR",
+                    "source": "ocr",
+                }
+
             st.rerun()
 
         with st.expander("OCR全文（デバッグ）"):
             st.text(ocr_with_vision(img_bytes))
+
 
 
 # --- 確認＆保存 ---
