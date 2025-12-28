@@ -154,14 +154,10 @@ else:
                     st.error("OCRでエラーになりました")
                     st.exception(e)
 
-        # OCR全文（デバッグ）は「保存してある値」を表示（再OCRしない）
-        if "draft" in st.session_state and st.session_state.draft and st.session_state.draft.get("ocr_text"):
-            with st.expander("OCR全文（デバッグ）"):
-                st.text(st.session_state.draft["ocr_text"])
-
-
-        with st.expander("OCR全文（デバッグ）"):
-            st.text(ocr_with_vision(img_bytes))
+        if st.session_state.draft and st.session_state.draft.get("ocr_text"):
+    with st.expander("OCR全文（デバッグ）"):
+        st.text(st.session_state.draft["ocr_text"])
+       
 
 
 
