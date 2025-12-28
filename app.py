@@ -115,45 +115,46 @@ if mode.startswith("手入力"):
 
 else:
     st.subheader("写真→OCR（β）")
-    up = st.file_uploader("栄養成分表の写真", type=["png", "jpg", "jpeg"], key="ocr_uploader")
+    up = st.file_uploader("栄養成分表の写真", type=["png", "jpg", "jpeg"], key="uploader_ocr")
 
     if up is None:
         st.info("画像をアップロードしてください。")
     else:
         img_bytes = up.getvalue()
         st.image(img_bytes, caption="アップロード画像", use_container_width=True)
-        st.success("画像を受け取りました。OCRボタンを押してください。")
+        st.success("画像を受け取りました。下のボタンでOCRします。")
+
+        # ★ 押したかどうかを分かりやすくするデバッグ表示
+        st.caption("※ ボタンを押すと数秒〜十数秒待つことがあります")
 
         if st.button("OCRして確認へ", type="primary", key="run_ocr"):
-            with st.spinner("OCR解析中です…（数秒〜十数秒かかることがあります）"):
-                try:
-                    text = ocr_with_vision(img_bytes)
-                    parsed = parse_nutrition(text)
+            st.write("✅ OCRボタン押下")  # ← これが出るか確認
 
-                    p = float(parsed.get("protein_g") or 0)
-                    f = float(parsed.get("fat_g") or 0)
-                    c = float(parsed.get("carbs_g") or 0)
-                    kcal = float(parsed.get("kcal") or calc_kcal(p, f, c))
+            with st.spinner("OCR解析中です…"):
+                text = ocr_with_vision(img_bytes)
+                parsed = parse_nutrition(text)
 
-                    st.session_state.draft = {
-                        "timestamp": datetime.now(JST).strftime("%Y/%m/%d %H:%M:%S"),
-                        "food_name": "",
-                        "protein_g": p,
-                        "fat_g": f,
-                        "carbs_g": c,
-                        "calories": kcal,
-                        "note": "OCR",
-                        "source": "ocr",
-                        "ocr_text": text,  # デバッグ用
-                    }
-                    st.rerun()
+                p = float(parsed.get("protein_g") or 0)
+                f = float(parsed.get("fat_g") or 0)
+                c = float(parsed.get("carbs_g") or 0)
+                kcal = float(parsed.get("kcal") or calc_kcal(p, f, c))
 
-                except Exception as e:
-                    st.error("OCRでエラーになりました")
-                    st.exception(e)
+                st.session_state.draft = {
+                    "timestamp": datetime.now(JST).strftime("%Y/%m/%d %H:%M:%S"),
+                    "food_name": "",
+                    "protein_g": p,
+                    "fat_g": f,
+                    "carbs_g": c,
+                    "calories": kcal,
+                    "note": "OCR",
+                    "source": "ocr",
+                    "ocr_text": text,  # デバッグ用
+                }
 
-        # ここは「ボタン押した後」に表示される（再OCRはしない）
-        if st.session_state.draft is not None and st.session_state.draft.get("ocr_text"):
+            st.rerun()
+
+        # ★ OCR全文（デバッグ）: すでに保存したテキストだけ表示（再OCRしない）
+        if st.session_state.draft and st.session_state.draft.get("ocr_text"):
             with st.expander("OCR全文（デバッグ）"):
                 st.text(st.session_state.draft["ocr_text"])
 
