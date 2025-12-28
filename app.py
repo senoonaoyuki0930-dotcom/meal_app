@@ -55,7 +55,7 @@ if mode.startswith("手入力"):
 
     if st.button("次へ（確認）", type="primary"):
         st.session_state.draft = {
-            "timestamp": datetime.now(JST).isoformat(),
+            "timestamp": datetime.now(JST).strftime("%Y/%m/%d %H:%M:%S"),
             "food_name": food_name,
             "protein_g": float(p),
             "fat_g": float(f),
@@ -106,7 +106,7 @@ if st.session_state.draft is not None:
                 ws = get_worksheet()
 
                 row = [
-                    datetime.now().isoformat(),
+                    datetime.now(JST).strftime("%Y/%m/%d %H:%M:%S"),
                     food_name2,               # ←ここに食べ物名を入れる（指定の順）
                     float(p2),
                     float(f2),
