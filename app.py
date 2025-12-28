@@ -6,6 +6,53 @@ import traceback
 
 JST = timezone(timedelta(hours=9))
 
+#OCR用
+from google.cloud import vision
+from PIL import Image
+import io
+import re
+
+def ocr_with_vision(image_bytes: bytes) -> str:
+    info = dict(st.secrets["gcp_service_account"])
+    creds = Credentials.from_service_account_info(info)
+    client = vision.ImageAnnotatorClient(credentials=creds)
+
+    image = vision.Image(content=image_bytes)
+    res = client.text_detection(image=image)
+    if res.error.message:
+        raise RuntimeError(res.error.message)
+
+    return res.text_annotations[0].description if res.text_annotations else ""
+
+def parse_nutrition(text: str) -> dict:
+    t = text.replace("：", ":").replace("．", ".").replace("，", ",")
+    t = t.replace("Ｋｃａｌ", "kcal").replace("Kcal", "kcal")
+
+    def pick(patterns):
+        for pat in patterns:
+            m = re.search(pat, t, flags=re.IGNORECASE)
+            if m:
+                return float(m.group(1))
+        return None
+
+    return {
+        "kcal": pick([
+            r"エネルギー\s*[: ]\s*([0-9]+(?:\.[0-9]+)?)\s*kcal",
+            r"熱量\s*[: ]\s*([0-9]+(?:\.[0-9]+)?)\s*kcal",
+        ]),
+        "protein_g": pick([
+            r"たんぱく質\s*[: ]\s*([0-9]+(?:\.[0-9]+)?)\s*g",
+            r"タンパク質\s*[: ]\s*([0-9]+(?:\.[0-9]+)?)\s*g",
+        ]),
+        "fat_g": pick([
+            r"脂質\s*[: ]\s*([0-9]+(?:\.[0-9]+)?)\s*g",
+        ]),
+        "carbs_g": pick([
+            r"炭水化物\s*[: ]\s*([0-9]+(?:\.[0-9]+)?)\s*g",
+        ]),
+    }
+
+
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
@@ -67,9 +114,37 @@ if mode.startswith("手入力"):
         st.rerun()
 
 else:
-    st.subheader("写真→OCR（Coming Soon!!）")
-    st.info("ここに写真アップ→OCR→候補表示→修正→保存 を後で追加します。")
-    st.file_uploader("栄養成分表の写真（任意）", type=["png", "jpg", "jpeg"])
+    st.subheader("写真→OCR（β）")
+    up = st.file_uploader("栄養成分表の写真", type=["png", "jpg", "jpeg"])
+
+    if up is not None:
+        img_bytes = up.getvalue()
+        st.image(img_bytes, caption="アップロード画像", use_container_width=True)
+
+        if st.button("OCRして確認へ", type="primary"):
+            text = ocr_with_vision(img_bytes)
+            parsed = parse_nutrition(text)
+
+            p = float(parsed["protein_g"] or 0)
+            f = float(parsed["fat_g"] or 0)
+            c = float(parsed["carbs_g"] or 0)
+            kcal = float(parsed["kcal"] or calc_kcal(p, f, c))
+
+            st.session_state.draft = {
+                "timestamp": datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S"),
+                "food_name": "",
+                "protein_g": p,
+                "fat_g": f,
+                "carbs_g": c,
+                "calories": kcal,
+                "note": "OCR",
+                "source": "ocr",
+            }
+            st.rerun()
+
+        with st.expander("OCR全文（デバッグ）"):
+            st.text(ocr_with_vision(img_bytes))
+
 
 # --- 確認＆保存 ---
 if st.session_state.draft is not None:
