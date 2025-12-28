@@ -115,7 +115,7 @@ if mode.startswith("手入力"):
 
 else:
     st.subheader("写真→OCR（β）")
-    up = st.file_uploader("栄養成分表の写真", type=["png", "jpg", "jpeg"], key="ocr_upload")
+    up = st.file_uploader("栄養成分表の写真", type=["png", "jpg", "jpeg"], key="ocr_uploader")
 
     if up is None:
         st.info("画像をアップロードしてください。")
@@ -144,7 +144,7 @@ else:
                         "calories": kcal,
                         "note": "OCR",
                         "source": "ocr",
-                        "ocr_text": text,
+                        "ocr_text": text,  # デバッグ用
                     }
                     st.rerun()
 
@@ -152,11 +152,12 @@ else:
                     st.error("OCRでエラーになりました")
                     st.exception(e)
 
-        if st.session_state.draft and st.session_state.draft.get("ocr_text"):
+        # ここは「ボタン押した後」に表示される（再OCRはしない）
+        if st.session_state.draft is not None and st.session_state.draft.get("ocr_text"):
             with st.expander("OCR全文（デバッグ）"):
                 st.text(st.session_state.draft["ocr_text"])
 
-       
+  
 
 
 
